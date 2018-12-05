@@ -407,7 +407,9 @@ void add_table(const gchar* filename, struct configuration *conf) {
 	gchar** split_file= g_strsplit(filename, ".", 0);
 	rj->database= g_strdup(split_file[0]);
 	rj->table= g_strdup(split_file[1]);
-	rj->part= g_ascii_strtoull(split_file[2], NULL, 10);
+	if(split_file[2] != NULL && !strcmp(split_file[2], "sql")) {
+		rj->part= g_strdup(split_file[2]);
+	}
 	g_async_queue_push(conf->queue, j);
 	return;
 }
@@ -447,7 +449,7 @@ void *process_queue(struct thread_data *td) {
 		switch (job->type) {
 			case JOB_RESTORE:
 				rj= (struct restore_job *)job->job_data;
-				g_message("Thread %d restoring `%s`.`%s` part %d", td->thread_id, rj->database, rj->table, rj->part);
+				g_message("Thread %d restoring `%s`.`%s` part %s", td->thread_id, rj->database, rj->table, rj->part);
 				restore_data(thrconn, rj->database, rj->table, rj->filename, FALSE, TRUE);
 				if (rj->database) g_free(rj->database);
 				if (rj->table) g_free(rj->table);
