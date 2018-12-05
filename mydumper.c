@@ -571,7 +571,7 @@ void *process_queue(struct thread_data *td) {
 		switch (job->type) {
 			case JOB_DUMP:
 				tj=(struct table_job *)job->job_data;
-				g_message("Thread %d dumping data for `%s`.`%s`%s", td->thread_id, tj->database, tj->table, (tj->where == NULL) ? "" : tj->where);
+				g_message("Thread %d dumping data for `%s`.`%s`%s", td->thread_id, tj->database, tj->table, tj->where ? tj->where : "");
 				if(use_savepoints && mysql_query(thrconn, "SAVEPOINT mydumper")){
 					g_critical("Savepoint failed: %s",mysql_error(thrconn));
 				}
@@ -588,7 +588,7 @@ void *process_queue(struct thread_data *td) {
 				break;
 			case JOB_DUMP_NON_INNODB:
 				tj=(struct table_job *)job->job_data;
-				g_message("Thread %d dumping data for `%s`.`%s`%s", td->thread_id, tj->database, tj->table, (tj->where == NULL) ? "" : tj->where);
+				g_message("Thread %d dumping data for `%s`.`%s`%s", td->thread_id, tj->database, tj->table, tj->where ? tj->where : "");
 				if(use_savepoints && mysql_query(thrconn, "SAVEPOINT mydumper")){
 					g_critical("Savepoint failed: %s",mysql_error(thrconn));
 				}
@@ -2797,9 +2797,9 @@ void dump_table(MYSQL *conn, char *database, char *table, struct configuration *
 			j->conf=conf;
 			j->type= is_innodb ? JOB_DUMP : JOB_DUMP_NON_INNODB;
 			if (daemon_mode)
-				tj->filename=g_strdup_printf("%s/%d/%s.%s.%s%s.sql%s", output_directory, dump_number, database, table, (char *)partitions->data, (chunk_filesize?"_00001":""), (compress_output?".gz":""));
+				tj->filename=g_strdup_printf("%s/%d/%s.%s.%s%s.sql%s", output_directory, dump_number, database, table, (char *)partitions->data, (chunk_filesize?".00001":""), (compress_output?".gz":""));
 			else
-				tj->filename=g_strdup_printf("%s/%s.%s.%s%s.sql%s", output_directory, database, table, (char *)partitions->data, (chunk_filesize?"_00001":""), (compress_output?".gz":""));
+				tj->filename=g_strdup_printf("%s/%s.%s.%s%s.sql%s", output_directory, database, table, (char *)partitions->data, (chunk_filesize?".00001":""), (compress_output?".gz":""));
 			//this is not
 			tj->where=g_strdup_printf(" PARTITION (%s) ", (char *)partitions->data);
 			if (!is_innodb && npartition)
@@ -2872,9 +2872,9 @@ void dump_tables(MYSQL *conn, GList *noninnodb_tables_list, struct configuration
 				tj->database = g_strdup_printf("%s",dbt->database);
 				tj->table = g_strdup_printf("%s",dbt->table);
 				if (daemon_mode)
-					tj->filename=g_strdup_printf("%s/%d/%s.%s.%s%s.sql%s", output_directory, dump_number, dbt->database, dbt->table, (char *)partitions->data, (chunk_filesize?"_00001":""), (compress_output?".gz":""));
+					tj->filename=g_strdup_printf("%s/%d/%s.%s.%s%s.sql%s", output_directory, dump_number, dbt->database, dbt->table, (char *)partitions->data, (chunk_filesize?".00001":""), (compress_output?".gz":""));
 				else
-					tj->filename=g_strdup_printf("%s/%s.%s.%s%s.sql%s", output_directory, dbt->database, dbt->table, (char *)partitions->data, (chunk_filesize?"_00001":""),(compress_output?".gz":""));
+					tj->filename=g_strdup_printf("%s/%s.%s.%s%s.sql%s", output_directory, dbt->database, dbt->table, (char *)partitions->data, (chunk_filesize?".00001":""),(compress_output?".gz":""));
 				tj->where=g_strdup_printf(" PARTITION (%s) ", (char *)partitions->data);
 				tjs->table_job_list= g_list_append(tjs->table_job_list, tj);
 			}

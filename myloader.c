@@ -410,6 +410,10 @@ void add_table(const gchar* filename, struct configuration *conf) {
 	if(split_file[2] != NULL && !strcmp(split_file[2], "sql")) {
 		rj->part= g_strdup(split_file[2]);
 	}
+	if(split_file[3] != NULL && !strcmp(split_file[3], "sql")) {
+		g_free(rj->part);
+		rj->part= g_strjoin (".", split_file[2], split_file[3]);
+	}
 	g_async_queue_push(conf->queue, j);
 	return;
 }
