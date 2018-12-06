@@ -2807,7 +2807,7 @@ void dump_table(MYSQL *conn, char *database, char *table, struct configuration *
 			g_async_queue_push(conf->queue,j);
 			npartition++;
 		}
-		g_list_free(g_list_first(partitions));
+		g_list_free_full(g_list_first(partitions), (GDestroyNotify)g_free);
 	} else if (chunks) {
 		int nchunk=0;
 		for (chunks = g_list_first(chunks); chunks; chunks=g_list_next(chunks)) {
@@ -2828,7 +2828,7 @@ void dump_table(MYSQL *conn, char *database, char *table, struct configuration *
 			g_async_queue_push(conf->queue,j);
 			nchunk++;
 		}
-		g_list_free(g_list_first(chunks));
+		g_list_free_full(g_list_first(chunks), (GDestroyNotify)g_free);
 	} else {
 		struct job *j = g_new0(struct job,1);
 		struct table_job *tj = g_new0(struct table_job,1);
@@ -2878,6 +2878,7 @@ void dump_tables(MYSQL *conn, GList *noninnodb_tables_list, struct configuration
 				tj->where=g_strdup_printf(" PARTITION (%s) ", (char *)partitions->data);
 				tjs->table_job_list= g_list_append(tjs->table_job_list, tj);
 			}
+			g_list_free_full(g_list_first(partitions), (GDestroyNotify)g_free);
 		} else if(chunks){
 			int nchunk=0;
 			for (chunks = g_list_first(chunks); chunks; chunks=g_list_next(chunks)) {
@@ -2892,6 +2893,7 @@ void dump_tables(MYSQL *conn, GList *noninnodb_tables_list, struct configuration
 				tjs->table_job_list= g_list_append(tjs->table_job_list, tj);
 				nchunk++;
 			}
+			g_list_free_full(g_list_first(chunks), (GDestroyNotify)g_free);
 		} else {
 			struct table_job *tj = g_new0(struct table_job,1);
 			tj->database = g_strdup_printf("%s",dbt->database);
@@ -3209,3 +3211,4 @@ void write_log_file(const gchar *log_domain, GLogLevelFlags log_level, const gch
 	}
 	g_string_free(message_out, TRUE);
 }
+
