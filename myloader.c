@@ -407,12 +407,14 @@ void add_table(const gchar* filename, struct configuration *conf) {
 	gchar** split_file= g_strsplit(filename, ".", 0);
 	rj->database= g_strdup(split_file[0]);
 	rj->table= g_strdup(split_file[1]);
-	if(split_file[2] != NULL && !strcmp(split_file[2], "sql")) {
-		rj->part= g_strdup(split_file[2]);
-	}
-	if(split_file[3] != NULL && !strcmp(split_file[3], "sql")) {
-		g_free(rj->part);
-		rj->part= g_strjoin (".", split_file[2], split_file[3], NULL);
+	if(split_file[2] != NULL && g_strcmp0(split_file[2], "sql") != 0) {
+		if(split_file[3] != NULL && g_strcmp0(split_file[3], "sql") != 0 ) {
+			rj->part= g_strjoin(".", split_file[2], split_file[3], NULL);
+		} else {
+			rj->part= g_strdup(split_file[2]);
+		}
+	} else {
+		rj->part= g_strdup("0");
 	}
 	g_async_queue_push(conf->queue, j);
 	return;
@@ -458,6 +460,7 @@ void *process_queue(struct thread_data *td) {
 				if (rj->database) g_free(rj->database);
 				if (rj->table) g_free(rj->table);
 				if (rj->filename) g_free(rj->filename);
+				if (rj->part) g_free(rj->part);
 				g_free(rj);
 				g_free(job);
 				break;
